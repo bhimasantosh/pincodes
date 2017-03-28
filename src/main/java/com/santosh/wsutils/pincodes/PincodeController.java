@@ -73,7 +73,7 @@ public class PincodeController {
 		Set<Pincode> pincodes = pincodesLoader.getPincodes();
 		pincodes.forEach(pincode -> {
 			if (pincode.getState().equals(state) && pincode.getDistrict().equals(district)
-					&& pincode.getSubDistrict().startsWith(subdistrict)) {
+					&& pincode.getSubDistrict().startsWith(subdistrict.toUpperCase())) {
 				districts.add(pincode.getSubDistrict());
 			}
 		});
@@ -81,18 +81,54 @@ public class PincodeController {
 	}
 
 	@ResponseBody
-	@RequestMapping("/pincodes/villages")
-	public ResponseEntity<Set<String>> getVillage(@RequestParam("state") String state,
-			@RequestParam("district") String district, @RequestParam("subdistrict") String subdistrict,
-			@RequestParam("village") String village) {
-		Set<String> districts = new HashSet<>();
+	@RequestMapping("/pincodes/villages/{state}/{district}/{subdistrict}/{village}")
+	public ResponseEntity<Set<String>> getVillage(@PathVariable("state") String state,
+			@PathVariable("district") String district, @PathVariable("subdistrict") String subdistrict,
+			@PathVariable("village") String village) {
+		Set<String> vilages = new HashSet<>();
 		Set<Pincode> pincodes = pincodesLoader.getPincodes();
 		pincodes.forEach(pincode -> {
 			if (pincode.getState().equals(state) && pincode.getDistrict().equals(district)
-					&& pincode.getSubDistrict().equals(subdistrict) && pincode.getVillage().startsWith(village)) {
-				districts.add(pincode.getVillage());
+					&& pincode.getSubDistrict().equals(subdistrict)
+					&& pincode.getVillage().startsWith(village.toUpperCase())) {
+				vilages.add(pincode.getVillage());
 			}
 		});
-		return new ResponseEntity<Set<String>>(districts, HttpStatus.OK);
+		return new ResponseEntity<Set<String>>(vilages, HttpStatus.OK);
+	}
+
+	@ResponseBody
+	@RequestMapping("/pincodes/localities/{state}/{district}/{subdistrict}/{village}/{locality}")
+	public ResponseEntity<Set<String>> getLocalities(@PathVariable("state") String state,
+			@PathVariable("district") String district, @PathVariable("subdistrict") String subdistrict,
+			@PathVariable("village") String village, @PathVariable("locality") String locality) {
+		Set<String> localities = new HashSet<>();
+		localities.add("ALL LOCALITIES");
+		Set<Pincode> pincodes = pincodesLoader.getPincodes();
+		pincodes.forEach(pincode -> {
+			if (pincode.getState().equals(state) && pincode.getDistrict().equals(district)
+					&& pincode.getSubDistrict().equals(subdistrict) && pincode.getVillage().equals(village)
+					&& pincode.getLocality().startsWith(locality.toUpperCase())) {
+				localities.add(pincode.getLocality());
+			}
+		});
+		return new ResponseEntity<Set<String>>(localities, HttpStatus.OK);
+	}
+
+	@ResponseBody
+	@RequestMapping("/pincodes/results/{state}/{district}/{subdistrict}/{village}/{locality}")
+	public ResponseEntity<Set<Pincode>> getPincodes(@PathVariable("state") String state,
+			@PathVariable("district") String district, @PathVariable("subdistrict") String subdistrict,
+			@PathVariable("village") String village, @PathVariable("locality") String locality) {
+		Set<Pincode> result = new HashSet<>();
+		Set<Pincode> pincodes = pincodesLoader.getPincodes();
+		pincodes.forEach(pincode -> {
+			if (pincode.getState().equals(state) && pincode.getDistrict().equals(district)
+					&& pincode.getSubDistrict().equals(subdistrict) && pincode.getVillage().equals(village)
+					&& pincode.getLocality().equals(locality.toUpperCase())) {
+				result.add(pincode);
+			}
+		});
+		return new ResponseEntity<Set<Pincode>>(result, HttpStatus.OK);
 	}
 }

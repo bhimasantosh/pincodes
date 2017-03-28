@@ -4,11 +4,11 @@
 package com.santosh.wsutils.pincodes.load;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.stereotype.Component;
@@ -29,13 +29,15 @@ public class PincodesLoader {
 
 	public PincodesLoader() {
 		try {
-			CSVReader csvReader = new CSVReader(new BufferedReader(new FileReader("locdetails_15feb16_4.csv")));
+
+			CSVReader csvReader = new CSVReader(
+					new BufferedReader(new InputStreamReader(new FileInputStream("locdetails_15feb16_4.csv"))));
 			String[] input;
 			csvReader.readNext();
 			int index = 0;
 			int districtIndex = 0;
 			int lesser = 0;
-			int totalIndex = 0;
+			int totalIndex = 1;
 			int previousIndex = 0;
 			while ((input = csvReader.readNext()) != null) {
 				/*
@@ -48,7 +50,6 @@ public class PincodesLoader {
 							input[2].toUpperCase(), input[3].toUpperCase(), input[4].toUpperCase(),
 							input[5].toUpperCase(), input[6].toUpperCase(), input[7].toUpperCase(),
 							input[8].toUpperCase());
-					System.out.println(input[9]);
 					getPincodes().add(pincode);
 					if (getStates().add(input[0].toUpperCase())) {
 						index = 1;
@@ -62,7 +63,7 @@ public class PincodesLoader {
 					}
 					totalIndex++;
 				} catch (Exception e) {
-					System.out.println(input[0]);
+					System.out.print(input[0] + ",");
 					e.printStackTrace();
 				}
 			}

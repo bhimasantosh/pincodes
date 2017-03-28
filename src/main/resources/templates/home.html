@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <!-- Bootstrap CSS-->
 <link rel="stylesheet" type="text/css"
-	href="../../plugins/bootstrap/dist/css/bootstrap.min.css" />
-<script type="text/javascript" src="../../plugins/jquery/dist/jquery.js"></script>
+	href="../../bootstrap/dist/css/bootstrap.min.css" />
+<script type="text/javascript" src="../../jquery/dist/jquery.js"></script>
 <script type="text/javascript"
-	src="../../plugins/typeahead.js/dist/typeahead.bundle.min.js"></script>
+	src="../../typeahead.js/dist/typeahead.bundle.min.js"></script>
 <!-- Primary Style-->
 <link rel="stylesheet" type="text/css" href="../../css/first-layout.css" />
 <link rel="stylesheet" type="text/css"
@@ -51,30 +51,62 @@
 								<form>
 									<div class="form-group">
 										<input id="state" class="form-control typeahead tt-query"
-											spellcheck="false" type="text" placeholder="State" />
+											spellcheck="false" type="text" placeholder="State"
+											required="required" />
 									</div>
 									<div class="form-group">
 										<input id="district" class="form-control typeahead tt-query"
-											type="text" placeholder="District" />
+											type="text" placeholder="District" required="required" />
 									</div>
 									<div class="form-group">
 										<input id="town" class="form-control typeahead" type="text"
-											placeholder="Town" />
+											placeholder="Town" required="required" />
 									</div>
 									<div class="form-group">
 										<input id="village" class="form-control typeahead" type="text"
-											placeholder="Village" />
+											placeholder="Village" required="required" />
 									</div>
 									<div class="form-group">
 										<input id="locality" class="form-control typeahead"
 											type="text" placeholder="Locality" />
 									</div>
-									<button type="submit" class="btn btn-outline btn-success">Submit</button>
+									<button type="button" class="btn btn-outline btn-success">Submit</button>
 								</form>
 							</div>
 						</div>
 					</div>
-					<div class="col-md-7"></div>
+					<div class="col-md-7">
+
+						<div class="row">
+							<div class="col-lg-12">
+								<div class="widget">
+									<div class="widget-header">
+										<h3 class="widget-title">Results</h3>
+									</div>
+									<div class="widget-body">
+										<table class="table">
+											<thead>
+												<tr>
+													<td>State</td>
+													<td>District</td>
+													<td>Town</td>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td>1</td>
+													<td>2</td>
+													<td>3</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+
+						</div>
+
+					</div>
 				</div>
 			</div>
 			<div class="page-footer"></div>
@@ -138,12 +170,13 @@
 					if ($('#state').val()) {
 						q += $('#state').val() + '/';
 					}
-					if ($('#town').val()) {
-						q += $('#town').val() + '/';
-					}
 					if ($('#district').val()) {
-						q += $('#district').val();
+						q += $('#district').val() + '/';
 					}
+					if ($('#town').val()) {
+						q += $('#town').val();
+					}
+
 					console.log(q);
 					return q;
 				}
@@ -157,6 +190,87 @@
 		}, {
 			name : 'subdistricts',
 			source : subdistricts,
+			limit : 10
+
+		});
+
+		//Villages TypeAhead
+		var villages = new Bloodhound({
+			datumTokenizer : Bloodhound.tokenizers.obj.whitespace('value'),
+			queryTokenizer : Bloodhound.tokenizers.whitespace,
+			prefetch : './pincodes/villages?village',
+			remote : {
+				url : './pincodes/villages?village=',
+				replace : function() {
+					var q = './pincodes/villages/';
+
+					if ($('#state').val()) {
+						q += $('#state').val() + '/';
+					}
+					if ($('#district').val()) {
+						q += $('#district').val() + '/';
+					}
+					if ($('#town').val()) {
+						q += $('#town').val() + '/';
+					}
+					if ($('#village').val()) {
+						q += $('#village').val();
+					}
+					console.log(q);
+					return q;
+				}
+			}
+		});
+		$('#village').typeahead({
+			hint : true,
+			highlight : true, /* Enable substring highlighting */
+			minLength : 2
+		/* Specify minimum characters required for showing result */
+		}, {
+			name : 'villages',
+			source : villages,
+			limit : 10
+
+		});
+
+		//Locality TypeAhead
+		var localities = new Bloodhound({
+			datumTokenizer : Bloodhound.tokenizers.obj.whitespace('value'),
+			queryTokenizer : Bloodhound.tokenizers.whitespace,
+			prefetch : './pincodes/localities?locality',
+			remote : {
+				url : './pincodes/localities?locality=',
+				replace : function() {
+					var q = './pincodes/localities/';
+
+					if ($('#state').val()) {
+						q += $('#state').val() + '/';
+					}
+					if ($('#district').val()) {
+						q += $('#district').val() + '/';
+					}
+					if ($('#town').val()) {
+						q += $('#town').val() + '/';
+					}
+					if ($('#village').val()) {
+						q += $('#village').val() + '/';
+					}
+					if ($('#locality').val()) {
+						q += $('#locality').val();
+					}
+					console.log(q);
+					return q;
+				}
+			}
+		});
+		$('#locality').typeahead({
+			hint : true,
+			highlight : true, /* Enable substring highlighting */
+			minLength : 2
+		/* Specify minimum characters required for showing result */
+		}, {
+			name : 'localities',
+			source : localities,
 			limit : 10
 
 		});
