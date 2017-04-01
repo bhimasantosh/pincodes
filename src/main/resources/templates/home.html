@@ -5,14 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <!-- Bootstrap CSS-->
 <link rel="stylesheet" type="text/css"
-	href="../../bootstrap/dist/css/bootstrap.min.css" />
-<script type="text/javascript" src="../../jquery/dist/jquery.js"></script>
+	href="../../plugins/bootstrap/dist/css/bootstrap.min.css" />
+<script type="text/javascript" src="../../plugins/jquery/dist/jquery.js"></script>
 <script type="text/javascript"
-	src="../../typeahead.js/dist/typeahead.bundle.min.js"></script>
+	src="../../plugins/typeahead.js/dist/typeahead.bundle.min.js"></script>
+<script type="text/javascript"
+	src="../../plugins/datatables.net/jquery.dataTables.min.js"></script>
 <!-- Primary Style-->
 <link rel="stylesheet" type="text/css" href="../../css/first-layout.css" />
+<link rel="stylesheet" type="text/css" href="../../css/third-layout.css" />
 <link rel="stylesheet" type="text/css"
 	href="../../css/skins/green-skin.css" />
+<script
+	src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+<link rel="stylesheet"
+	href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"></link>
+
 </head>
 <body data-sidebar-color="sidebar-light" class="sidebar-light">
 	<header>
@@ -49,57 +57,73 @@
 							</div>
 							<div class="widget-body">
 								<form>
-									<div class="form-group">
+									<div class="form-group" style="margin-bottom: 50px">
 										<input id="state" class="form-control typeahead tt-query"
 											spellcheck="false" type="text" placeholder="State"
 											required="required" />
 									</div>
-									<div class="form-group">
+									<div class="form-group" style="margin-bottom: 50px">
 										<input id="district" class="form-control typeahead tt-query"
 											type="text" placeholder="District" required="required" />
 									</div>
-									<div class="form-group">
+									<div class="form-group" style="margin-bottom: 50px">
 										<input id="town" class="form-control typeahead" type="text"
 											placeholder="Town" required="required" />
 									</div>
-									<div class="form-group">
+									<div class="form-group" style="margin-bottom: 50px">
 										<input id="village" class="form-control typeahead" type="text"
 											placeholder="Village" required="required" />
 									</div>
-									<div class="form-group">
+									<div class="form-group" style="margin-bottom: 50px">
 										<input id="locality" class="form-control typeahead"
 											type="text" placeholder="Locality" />
 									</div>
-									<button type="button" class="btn btn-outline btn-success">Submit</button>
+									<button type="button" class="btn btn-outline btn-success"
+										id="submit">Submit</button>
 								</form>
 							</div>
 						</div>
 					</div>
-					<div class="col-md-7">
+					<div class="col-md-9">
 
 						<div class="row">
 							<div class="col-lg-12">
-								<div class="widget">
+								<div class="widget" id="tabledata">
 									<div class="widget-header">
 										<h3 class="widget-title">Results</h3>
 									</div>
 									<div class="widget-body">
-										<table class="table">
-											<thead>
-												<tr>
-													<td>State</td>
-													<td>District</td>
-													<td>Town</td>
-												</tr>
-											</thead>
-											<tbody>
-												<tr>
-													<td>1</td>
-													<td>2</td>
-													<td>3</td>
-												</tr>
-											</tbody>
-										</table>
+										<div class="table">
+											<div class="row">
+												<div class="col-sm-12">
+													<table class="table table-striped table-condensed"
+														id="result-table">
+														<thead>
+															<tr>
+																<th>State</th>
+																<th>District</th>
+																<th>Town</th>
+																<th>Village</th>
+																<th>Locality</th>
+																<th>Sub Locality</th>
+																<th>Pincode</th>
+															</tr>
+														</thead>
+														<tfoot>
+															<tr>
+																<th>State</th>
+																<th>District</th>
+																<th>Town</th>
+																<th>Village</th>
+																<th>Locality</th>
+																<th>Sub Locality</th>
+																<th>Pincode</th>
+															</tr>
+														</tfoot>
+													</table>
+												</div>
+											</div>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -115,165 +139,216 @@
 </body>
 </html>
 <script type="text/javascript">
-	$(document).ready(function() {
-		//States Typeahead
-		var states = new Bloodhound({
-			datumTokenizer : Bloodhound.tokenizers.obj.whitespace('value'),
-			queryTokenizer : Bloodhound.tokenizers.whitespace,
-			prefetch : './pincodes/states?state',
-			remote : {
-				url : './pincodes/states?state=' + '%QUERY',
-				wildcard : '%QUERY'
-			}
-		});
-		$('#state').typeahead({
-			hint : true,
-			highlight : true, /* Enable substring highlighting */
-			minLength : 2
-		/* Specify minimum characters required for showing result */
-		}, {
-			name : 'states',
-			source : states,
-			limit : 10
-		});
-		// Districts Typeahead
-		var districts = new Bloodhound({
-			datumTokenizer : Bloodhound.tokenizers.obj.whitespace('value'),
-			queryTokenizer : Bloodhound.tokenizers.whitespace,
-			prefetch : './pincodes/districts?district',
-			remote : {
-				url : './pincodes/districts?district=' + '%QUERY',
-				wildcard : '%QUERY'
-			}
-		});
-		$('#district').typeahead({
-			hint : true,
-			highlight : true, /* Enable substring highlighting */
-			minLength : 2
-		/* Specify minimum characters required for showing result */
-		}, {
-			name : 'districts',
-			source : districts,
-			limit : 10
+	$(document).ready(
+			function() {
+				$('#tabledata').hide();
+				$("#submit").on(
+						'click',
+						function() {
+							var url = "/pincodes/results/"
+									+ $("#state").val()
+									+ "/"
+									+ $("#district").val()
+									+ "/"
+									+ $("#town").val()
+									+ "/"
+									+ ($('#village').val() == '' ? null : $(
+											'#village').val())
+									+ "/"
+									+ ($('#locality').val() == '' ? null : $(
+											'#locality').val());
+							console.log(url);
+							$('#tabledata').show();
+							$('#result-table').DataTable({
+								"destroy" : true,
+								"processing" : false,
+								"serverSide" : false,
+								"iDisplayLength" : 100,
+								"ajax" : {
+									"url" : url,
+									"type" : "get"
+								},
+								"columns" : [ {
+									"data" : "state"
+								}, {
+									"data" : "district"
+								}, {
+									"data" : "subDistrict"
+								}, {
+									"data" : "village"
+								}, {
+									"data" : "locality"
+								}, {
+									"data" : "locality2"
+								}, {
+									"data" : "pincode"
+								} ]
+							});
+						});
 
-		});
+				//States Typeahead
+				var states = new Bloodhound({
+					datumTokenizer : Bloodhound.tokenizers.obj
+							.whitespace('value'),
+					queryTokenizer : Bloodhound.tokenizers.whitespace,
+					prefetch : './pincodes/states?state',
+					remote : {
+						url : './pincodes/states?state=' + '%QUERY',
+						wildcard : '%QUERY'
+					}
+				});
+				$('#state').typeahead({
+					hint : true,
+					highlight : true, /* Enable substring highlighting */
+					minLength : 2
+				/* Specify minimum characters required for showing result */
+				}, {
+					name : 'states',
+					source : states,
+					limit : 3
+				});
+				// Districts Typeahead
+				var districts = new Bloodhound({
+					datumTokenizer : Bloodhound.tokenizers.obj
+							.whitespace('value'),
+					queryTokenizer : Bloodhound.tokenizers.whitespace,
+					prefetch : './pincodes/districts?district',
+					remote : {
+						url : './pincodes/districts?district=' + '%QUERY',
+						wildcard : '%QUERY'
+					}
+				});
+				$('#district').typeahead({
+					hint : true,
+					highlight : true, /* Enable substring highlighting */
+					minLength : 2
+				/* Specify minimum characters required for showing result */
+				}, {
+					name : 'districts',
+					source : districts,
+					limit : 3
 
-		//Subdistricts TypeAhead
-		var subdistricts = new Bloodhound({
-			datumTokenizer : Bloodhound.tokenizers.obj.whitespace('value'),
-			queryTokenizer : Bloodhound.tokenizers.whitespace,
-			prefetch : './pincodes/subdistricts?subdistrict',
-			remote : {
-				url : './pincodes/subdistricts?subdistrict=',
-				replace : function() {
-					var q = './pincodes/subdistricts/';
-					if ($('#state').val()) {
-						q += $('#state').val() + '/';
-					}
-					if ($('#district').val()) {
-						q += $('#district').val() + '/';
-					}
-					if ($('#town').val()) {
-						q += $('#town').val();
-					}
+				});
 
-					console.log(q);
-					return q;
-				}
-			}
-		});
-		$('#town').typeahead({
-			hint : true,
-			highlight : true, /* Enable substring highlighting */
-			minLength : 2
-		/* Specify minimum characters required for showing result */
-		}, {
-			name : 'subdistricts',
-			source : subdistricts,
-			limit : 10
+				//Subdistricts TypeAhead
+				var subdistricts = new Bloodhound({
+					datumTokenizer : Bloodhound.tokenizers.obj
+							.whitespace('value'),
+					queryTokenizer : Bloodhound.tokenizers.whitespace,
+					prefetch : './pincodes/subdistricts?subdistrict',
+					remote : {
+						url : './pincodes/subdistricts?subdistrict=',
+						replace : function() {
+							var q = './pincodes/subdistricts/';
+							if ($('#state').val()) {
+								q += $('#state').val() + '/';
+							}
+							if ($('#district').val()) {
+								q += $('#district').val() + '/';
+							}
+							if ($('#town').val()) {
+								q += $('#town').val();
+							}
 
-		});
+							console.log(q);
+							return q;
+						}
+					}
+				});
+				$('#town').typeahead({
+					hint : true,
+					highlight : true, /* Enable substring highlighting */
+					minLength : 2
+				/* Specify minimum characters required for showing result */
+				}, {
+					name : 'subdistricts',
+					source : subdistricts,
+					limit : 10
 
-		//Villages TypeAhead
-		var villages = new Bloodhound({
-			datumTokenizer : Bloodhound.tokenizers.obj.whitespace('value'),
-			queryTokenizer : Bloodhound.tokenizers.whitespace,
-			prefetch : './pincodes/villages?village',
-			remote : {
-				url : './pincodes/villages?village=',
-				replace : function() {
-					var q = './pincodes/villages/';
+				});
 
-					if ($('#state').val()) {
-						q += $('#state').val() + '/';
-					}
-					if ($('#district').val()) {
-						q += $('#district').val() + '/';
-					}
-					if ($('#town').val()) {
-						q += $('#town').val() + '/';
-					}
-					if ($('#village').val()) {
-						q += $('#village').val();
-					}
-					console.log(q);
-					return q;
-				}
-			}
-		});
-		$('#village').typeahead({
-			hint : true,
-			highlight : true, /* Enable substring highlighting */
-			minLength : 2
-		/* Specify minimum characters required for showing result */
-		}, {
-			name : 'villages',
-			source : villages,
-			limit : 10
+				//Villages TypeAhead
+				var villages = new Bloodhound({
+					datumTokenizer : Bloodhound.tokenizers.obj
+							.whitespace('value'),
+					queryTokenizer : Bloodhound.tokenizers.whitespace,
+					prefetch : './pincodes/villages?village',
+					remote : {
+						url : './pincodes/villages?village=',
+						replace : function() {
+							var q = './pincodes/villages/';
 
-		});
+							if ($('#state').val()) {
+								q += $('#state').val() + '/';
+							}
+							if ($('#district').val()) {
+								q += $('#district').val() + '/';
+							}
+							if ($('#town').val()) {
+								q += $('#town').val() + '/';
+							}
+							if ($('#village').val()) {
+								q += $('#village').val();
+							}
+							console.log(q);
+							return q;
+						}
+					}
+				});
+				$('#village').typeahead({
+					hint : true,
+					highlight : true, /* Enable substring highlighting */
+					minLength : 0
+				/* Specify minimum characters required for showing result */
+				}, {
+					name : 'villages',
+					source : villages,
+					limit : 10
 
-		//Locality TypeAhead
-		var localities = new Bloodhound({
-			datumTokenizer : Bloodhound.tokenizers.obj.whitespace('value'),
-			queryTokenizer : Bloodhound.tokenizers.whitespace,
-			prefetch : './pincodes/localities?locality',
-			remote : {
-				url : './pincodes/localities?locality=',
-				replace : function() {
-					var q = './pincodes/localities/';
+				});
 
-					if ($('#state').val()) {
-						q += $('#state').val() + '/';
-					}
-					if ($('#district').val()) {
-						q += $('#district').val() + '/';
-					}
-					if ($('#town').val()) {
-						q += $('#town').val() + '/';
-					}
-					if ($('#village').val()) {
-						q += $('#village').val() + '/';
-					}
-					if ($('#locality').val()) {
-						q += $('#locality').val();
-					}
-					console.log(q);
-					return q;
-				}
-			}
-		});
-		$('#locality').typeahead({
-			hint : true,
-			highlight : true, /* Enable substring highlighting */
-			minLength : 2
-		/* Specify minimum characters required for showing result */
-		}, {
-			name : 'localities',
-			source : localities,
-			limit : 10
+				//Locality TypeAhead
+				var localities = new Bloodhound({
+					datumTokenizer : Bloodhound.tokenizers.obj
+							.whitespace('value'),
+					queryTokenizer : Bloodhound.tokenizers.whitespace,
+					prefetch : './pincodes/localities?locality',
+					remote : {
+						url : './pincodes/localities?locality=',
+						replace : function() {
+							var q = './pincodes/localities/';
 
-		});
+							if ($('#state').val()) {
+								q += $('#state').val() + '/';
+							}
+							if ($('#district').val()) {
+								q += $('#district').val() + '/';
+							}
+							if ($('#town').val()) {
+								q += $('#town').val() + '/';
+							}
+							if ($('#village').val()) {
+								q += $('#village').val() + '/';
+							}
+							if ($('#locality').val()) {
+								q += $('#locality').val();
+							}
+							console.log(q);
+							return q;
+						}
+					}
+				});
+				$('#locality').typeahead({
+					hint : true,
+					highlight : true, /* Enable substring highlighting */
+					minLength : 0
+				/* Specify minimum characters required for showing result */
+				}, {
+					name : 'localities',
+					source : localities,
+					limit : 10
 
-	});
+				});
+
+			});
 </script>

@@ -40,7 +40,7 @@ public class PincodeController {
 			response = pincodesLoader.getStates();
 		} else {
 			for (String s : pincodesLoader.getStates()) {
-				if (s.startsWith(state.toUpperCase())) {
+				if (s.contains(state.toUpperCase())) {
 					response.add(s);
 				}
 			}
@@ -57,7 +57,7 @@ public class PincodeController {
 			response = pincodesLoader.getDistricts();
 		} else {
 			for (String s : pincodesLoader.getDistricts()) {
-				if (s.startsWith(district.toUpperCase())) {
+				if (s.contains(district.toUpperCase())) {
 					response.add(s);
 				}
 			}
@@ -73,7 +73,7 @@ public class PincodeController {
 		Set<Pincode> pincodes = pincodesLoader.getPincodes();
 		pincodes.forEach(pincode -> {
 			if (pincode.getState().equals(state) && pincode.getDistrict().equals(district)
-					&& pincode.getSubDistrict().startsWith(subdistrict.toUpperCase())) {
+					&& pincode.getSubDistrict().contains(subdistrict.toUpperCase())) {
 				districts.add(pincode.getSubDistrict());
 			}
 		});
@@ -90,7 +90,7 @@ public class PincodeController {
 		pincodes.forEach(pincode -> {
 			if (pincode.getState().equals(state) && pincode.getDistrict().equals(district)
 					&& pincode.getSubDistrict().equals(subdistrict)
-					&& pincode.getVillage().startsWith(village.toUpperCase())) {
+					&& pincode.getVillage().contains(village.toUpperCase())) {
 				vilages.add(pincode.getVillage());
 			}
 		});
@@ -108,7 +108,7 @@ public class PincodeController {
 		pincodes.forEach(pincode -> {
 			if (pincode.getState().equals(state) && pincode.getDistrict().equals(district)
 					&& pincode.getSubDistrict().equals(subdistrict) && pincode.getVillage().equals(village)
-					&& pincode.getLocality().startsWith(locality.toUpperCase())) {
+					&& pincode.getLocality().contains(locality.toUpperCase())) {
 				localities.add(pincode.getLocality());
 			}
 		});
@@ -117,18 +117,32 @@ public class PincodeController {
 
 	@ResponseBody
 	@RequestMapping("/pincodes/results/{state}/{district}/{subdistrict}/{village}/{locality}")
-	public ResponseEntity<Set<Pincode>> getPincodes(@PathVariable("state") String state,
+	public ResponseEntity<PincodeResult> getPincodes(@PathVariable("state") String state,
 			@PathVariable("district") String district, @PathVariable("subdistrict") String subdistrict,
 			@PathVariable("village") String village, @PathVariable("locality") String locality) {
 		Set<Pincode> result = new HashSet<>();
 		Set<Pincode> pincodes = pincodesLoader.getPincodes();
 		pincodes.forEach(pincode -> {
-			if (pincode.getState().equals(state) && pincode.getDistrict().equals(district)
-					&& pincode.getSubDistrict().equals(subdistrict) && pincode.getVillage().equals(village)
-					&& pincode.getLocality().equals(locality.toUpperCase())) {
-				result.add(pincode);
+			if (village == null || StringUtils.isEmpty(village) || village.equals("null")) {
+				if (pincode.getState().equals(state) && pincode.getDistrict().equals(district)
+						&& pincode.getSubDistrict().equals(subdistrict)) {
+					result.add(pincode);
+				}
+			} else if (locality == null || StringUtils.isEmpty(locality) || locality.equals("null")) {
+				if (pincode.getState().equals(state) && pincode.getDistrict().equals(district)
+						&& pincode.getSubDistrict().equals(subdistrict) && pincode.getVillage().equals(village)) {
+					result.add(pincode);
+				}
+			} else {
+				if (pincode.getState().equals(state) && pincode.getDistrict().equals(district)
+						&& pincode.getSubDistrict().equals(subdistrict) && pincode.getVillage().equals(village)
+						&& pincode.getLocality().equals(locality.toUpperCase())) {
+					result.add(pincode);
+				}
 			}
 		});
-		return new ResponseEntity<Set<Pincode>>(result, HttpStatus.OK);
+		PincodeResult pincodeResult = new PincodeResult();
+		pincodeResult.setData(result);
+		return new ResponseEntity<PincodeResult>(pincodeResult, HttpStatus.OK);
 	}
 }
